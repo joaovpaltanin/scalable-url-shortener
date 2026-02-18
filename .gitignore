@@ -51,6 +51,9 @@ Thumbs.db
 .env
 *.env
 
+# Load test results
+load-test/results.json
+
 # JVM crash logs
 hs_err_pid*
 replay_pid*
