@@ -27,5 +27,16 @@ services:
       SPRING_DATASOURCE_USERNAME: app
       SPRING_DATASOURCE_PASSWORD: app
 
+  k6:
+    image: grafana/k6:latest
+    profiles: [load-test]
+    working_dir: /scripts
+    volumes:
+      - ./load-test:/scripts
+    environment:
+      BASE_URL: http://app:8080
+    depends_on:
+      - app
+
 volumes:
   pgdata:
