@@ -52,6 +52,7 @@ Thumbs.db
 *.env
 
 # Load test results
+load-test/*-results.json
 load-test/results.json
 
 # JVM crash logs
