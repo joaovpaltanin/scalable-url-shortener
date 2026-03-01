@@ -6,8 +6,8 @@ A URL shortener built in **5 evolutionary versions**, each one introducing a rea
 
 | Version | Concept | Status | Docs |
 |---------|---------|--------|------|
-| **V1** | Naive baseline (single DB, no cache) | **current** | [Read →](docs/v1.md) |
-| V2 | Stateless + Load Balancer | planned | _soon_ |
+| V1 | Naive baseline (single DB, no cache) | done | [Read →](docs/v1/v1.md) |
+| **V2** | Stateless + Load Balancer | **current** | [Read →](docs/v2/v2.md) |
 | V3 | Cache (Redis) to protect the DB | planned | _soon_ |
 | V4 | Sharding | planned | _soon_ |
 | V5 | Replication + eventual consistency | planned | _soon_ |
@@ -18,12 +18,13 @@ A URL shortener built in **5 evolutionary versions**, each one introducing a rea
 
 ```bash
 docker compose up --build
-# App is available at http://localhost:8080
+# App is available at http://localhost (port 80, via Nginx)
 ```
 
 ## Tech Stack
 
 - Java 21 + Spring Boot 3.3
 - PostgreSQL 16
+- Nginx (load balancer)
 - Docker Compose
 - k6 (load testing)
