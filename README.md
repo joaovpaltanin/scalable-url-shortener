@@ -5,7 +5,7 @@ A URL shortener built in **5 evolutionary versions**, each one introducing a rea
 ## Versions
 
 | Version | Concept | Status | Docs |
-|---------|---------|--------|------|
+| ------- | ------- | ------ | ---- |
 | V1 | Naive baseline (single DB, no cache) | done | [Read →](docs/v1/v1.md) |
 | V2 | Stateless + Load Balancer | done | [Read →](docs/v2/v2.md) |
 | **V3** | Cache (Redis) to protect the DB | **current** | [Read →](docs/v3/v3.md) |
