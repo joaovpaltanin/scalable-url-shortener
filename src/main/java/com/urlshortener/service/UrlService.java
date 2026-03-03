@@ -20,9 +20,11 @@ public class UrlService {
 
     private final SecureRandom random = new SecureRandom();
     private final UrlRepository urlRepository;
+    private final UrlCacheService cache;
 
-    public UrlService(UrlRepository urlRepository) {
+    public UrlService(UrlRepository urlRepository, UrlCacheService cache) {
         this.urlRepository = urlRepository;
+        this.cache = cache;
     }
 
     public ShortenResponse shorten(ShortenRequest request, String baseUrl) {
@@ -32,6 +34,7 @@ public class UrlService {
             String code = generateCode();
             try {
                 ShortenedUrl entity = urlRepository.save(new ShortenedUrl(code, originalUrl));
+                cache.put(entity.getCode(), originalUrl);
                 return new ShortenResponse(baseUrl + "/r/" + entity.getCode());
             } catch (DataIntegrityViolationException ignored) {
                 // Code collision — retry with a new code
@@ -43,9 +46,20 @@ public class UrlService {
     }
 
     public String resolve(String code) {
-        return urlRepository.findByCode(code)
+        String cached = cache.get(code);
+        if (cached != null) {
+            return cached;
+        }
+
+        String originalUrl = urlRepository.findByCode(code)
                 .map(ShortenedUrl::getOriginalUrl)
                 .orElse(null);
+
+        if (originalUrl != null) {
+            cache.put(code, originalUrl);
+        }
+
+        return originalUrl;
     }
 
     String generateCode() {
