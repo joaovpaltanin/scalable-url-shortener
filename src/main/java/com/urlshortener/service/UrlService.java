@@ -3,13 +3,13 @@ package com.urlshortener.service;
 import java.net.URI;
 import java.security.SecureRandom;
 
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import com.urlshortener.dto.ShortenRequest;
 import com.urlshortener.dto.ShortenResponse;
 import com.urlshortener.model.ShortenedUrl;
-import com.urlshortener.repository.UrlRepository;
+import com.urlshortener.repository.ShardedUrlRepository;
 
 @Service
 public class UrlService {
@@ -19,10 +19,10 @@ public class UrlService {
     private static final int MAX_RETRIES = 3;
 
     private final SecureRandom random = new SecureRandom();
-    private final UrlRepository urlRepository;
+    private final ShardedUrlRepository urlRepository;
     private final UrlCacheService cache;
 
-    public UrlService(UrlRepository urlRepository, UrlCacheService cache) {
+    public UrlService(ShardedUrlRepository urlRepository, UrlCacheService cache) {
         this.urlRepository = urlRepository;
         this.cache = cache;
     }
@@ -33,11 +33,10 @@ public class UrlService {
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             String code = generateCode();
             try {
-                ShortenedUrl entity = urlRepository.save(new ShortenedUrl(code, originalUrl));
+                ShortenedUrl entity = urlRepository.save(code, originalUrl);
                 cache.put(entity.getCode(), originalUrl);
                 return new ShortenResponse(baseUrl + "/r/" + entity.getCode());
-            } catch (DataIntegrityViolationException ignored) {
-                // Code collision — retry with a new code
+            } catch (DuplicateKeyException ignored) {
             }
         }
 

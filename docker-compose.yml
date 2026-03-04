@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgres-0:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: urlshortener
@@ -8,7 +8,25 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata0:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres-1:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata1:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
       interval: 5s
@@ -32,14 +50,19 @@ services:
     deploy:
       replicas: 3
     depends_on:
-      postgres:
+      postgres-0:
+        condition: service_healthy
+      postgres-1:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/urlshortener
-      SPRING_DATASOURCE_USERNAME: app
-      SPRING_DATASOURCE_PASSWORD: app
+      SHARDING_SHARDS_0_URL: jdbc:postgresql://postgres-0:5432/urlshortener
+      SHARDING_SHARDS_0_USERNAME: app
+      SHARDING_SHARDS_0_PASSWORD: app
+      SHARDING_SHARDS_1_URL: jdbc:postgresql://postgres-1:5432/urlshortener
+      SHARDING_SHARDS_1_USERNAME: app
+      SHARDING_SHARDS_1_PASSWORD: app
       SPRING_DATA_REDIS_HOST: redis
 
   nginx:
@@ -63,4 +86,5 @@ services:
       - nginx
 
 volumes:
-  pgdata:
+  pgdata0:
+  pgdata1:
