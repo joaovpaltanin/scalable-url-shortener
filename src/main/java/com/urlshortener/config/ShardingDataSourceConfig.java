@@ -26,32 +26,52 @@ public class ShardingDataSourceConfig {
     }
 
     @Bean
-    public List<JdbcTemplate> shardJdbcTemplates() {
+    public List<ShardJdbcTemplates> shardJdbcTemplates() {
         return shards.stream()
-                .map(this::createJdbcTemplate)
+                .map(this::createShardJdbcTemplates)
                 .toList();
     }
 
-    private JdbcTemplate createJdbcTemplate(ShardProperties props) {
-        DataSource ds = DataSourceBuilder.create()
-                .url(props.getUrl())
+    private ShardJdbcTemplates createShardJdbcTemplates(ShardProperties props) {
+        DataSource writeDs = DataSourceBuilder.create()
+                .url(props.getWriteUrl())
                 .username(props.getUsername())
                 .password(props.getPassword())
                 .build();
-        return new JdbcTemplate(ds);
+        DataSource readDs = DataSourceBuilder.create()
+                .url(props.getReadUrl())
+                .username(props.getUsername())
+                .password(props.getPassword())
+                .build();
+
+        return new ShardJdbcTemplates(
+                new JdbcTemplate(writeDs),
+                new JdbcTemplate(readDs));
+    }
+
+    public record ShardJdbcTemplates(JdbcTemplate write, JdbcTemplate read) {
     }
 
     public static class ShardProperties {
-        private String url;
+        private String writeUrl;
+        private String readUrl;
         private String username;
         private String password;
 
-        public String getUrl() {
-            return url;
+        public String getWriteUrl() {
+            return writeUrl;
         }
 
-        public void setUrl(String url) {
-            this.url = url;
+        public void setWriteUrl(String writeUrl) {
+            this.writeUrl = writeUrl;
+        }
+
+        public String getReadUrl() {
+            return readUrl;
+        }
+
+        public void setReadUrl(String readUrl) {
+            this.readUrl = readUrl;
         }
 
         public String getUsername() {
