@@ -22,7 +22,7 @@ public class ShardedUrlRepository {
      * @throws DuplicateKeyException if the code already exists on the target shard
      */
     public ShortenedUrl save(String code, String originalUrl) {
-        JdbcTemplate jdbc = router.templateFor(code);
+        JdbcTemplate jdbc = router.writeTemplateFor(code);
         jdbc.update(
                 "INSERT INTO shortened_urls (code, original_url, created_at) VALUES (?, ?, NOW())",
                 code, originalUrl);
@@ -30,21 +30,30 @@ public class ShardedUrlRepository {
     }
 
     public Optional<ShortenedUrl> findByCode(String code) {
-        JdbcTemplate jdbc = router.templateFor(code);
+        Optional<ShortenedUrl> fromReplica = queryByCode(router.readTemplateFor(code), code);
+        if (fromReplica.isPresent()) {
+            return fromReplica;
+        }
+
+        // Replication lag fallback: if the replica hasn't caught up yet,
+        // query the primary before returning 404.
+        return queryByCode(router.writeTemplateFor(code), code);
+    }
+
+    public boolean existsByCode(String code) {
+        Integer count = router.writeTemplateFor(code).queryForObject(
+                "SELECT COUNT(*) FROM shortened_urls WHERE code = ?",
+                Integer.class,
+                code);
+        return count != null && count > 0;
+    }
+
+    private Optional<ShortenedUrl> queryByCode(JdbcTemplate jdbc, String code) {
         return jdbc.query(
                 "SELECT code, original_url FROM shortened_urls WHERE code = ?",
                 (rs, rowNum) -> new ShortenedUrl(
                         rs.getString("code"),
                         rs.getString("original_url")),
-                code
-        ).stream().findFirst();
-    }
-
-    public boolean existsByCode(String code) {
-        JdbcTemplate jdbc = router.templateFor(code);
-        Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM shortened_urls WHERE code = ?",
-                Integer.class, code);
-        return count != null && count > 0;
+                code).stream().findFirst();
     }
 }
