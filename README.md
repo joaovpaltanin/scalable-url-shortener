@@ -9,8 +9,8 @@ A URL shortener built in **5 evolutionary versions**, each one introducing a rea
 | V1 | Naive baseline (single DB, no cache) | done | [Read →](docs/v1/v1.md) |
 | V2 | Stateless + Load Balancer | done | [Read →](docs/v2/v2.md) |
 | V3 | Cache (Redis) to protect the DB | done | [Read →](docs/v3/v3.md) |
-| V4 | Sharding | done | [Read →](docs/v4/v4.md) |
-| **V5** | Replication + eventual consistency | **current** | [Read →](docs/v5/v5.md) |
+| **V4** | Sharding | **current** | [Read →](docs/v4/v4.md) |
+| V5 | Replication + eventual consistency | planned | _soon_ |
 
 ## Quick Start
 

@@ -1,11 +1,9 @@
 sharding:
   shards:
-    - writeUrl: jdbc:postgresql://localhost:5432/urlshortener
-      readUrl: jdbc:postgresql://localhost:5434/urlshortener
+    - url: jdbc:postgresql://localhost:5432/urlshortener
       username: app
       password: app
-    - writeUrl: jdbc:postgresql://localhost:5433/urlshortener
-      readUrl: jdbc:postgresql://localhost:5435/urlshortener
+    - url: jdbc:postgresql://localhost:5433/urlshortener
       username: app
       password: app
 

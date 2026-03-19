@@ -1,91 +1,37 @@
 services:
   postgres-0:
-    image: bitnami/postgresql:16
+    image: postgres:16-alpine
     environment:
-      POSTGRESQL_REPLICATION_MODE: master
-      POSTGRESQL_REPLICATION_USER: repl
-      POSTGRESQL_REPLICATION_PASSWORD: repl
-      POSTGRESQL_USERNAME: app
-      POSTGRESQL_PASSWORD: app
-      POSTGRESQL_DATABASE: urlshortener
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
     ports:
       - "5432:5432"
     volumes:
-      - pgdata0:/bitnami/postgresql
+      - pgdata0:/var/lib/postgresql/data
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
       interval: 5s
       timeout: 3s
-      retries: 10
-
-  postgres-0-replica:
-    image: bitnami/postgresql:16
-    depends_on:
-      postgres-0:
-        condition: service_healthy
-    environment:
-      POSTGRESQL_REPLICATION_MODE: slave
-      POSTGRESQL_REPLICATION_USER: repl
-      POSTGRESQL_REPLICATION_PASSWORD: repl
-      POSTGRESQL_MASTER_HOST: postgres-0
-      POSTGRESQL_MASTER_PORT_NUMBER: 5432
-      POSTGRESQL_USERNAME: app
-      POSTGRESQL_PASSWORD: app
-      POSTGRESQL_DATABASE: urlshortener
-    ports:
-      - "5434:5432"
-    volumes:
-      - pgdata0replica:/bitnami/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      retries: 5
 
   postgres-1:
-    image: bitnami/postgresql:16
+    image: postgres:16-alpine
     environment:
-      POSTGRESQL_REPLICATION_MODE: master
-      POSTGRESQL_REPLICATION_USER: repl
-      POSTGRESQL_REPLICATION_PASSWORD: repl
-      POSTGRESQL_USERNAME: app
-      POSTGRESQL_PASSWORD: app
-      POSTGRESQL_DATABASE: urlshortener
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
     ports:
       - "5433:5432"
     volumes:
-      - pgdata1:/bitnami/postgresql
+      - pgdata1:/var/lib/postgresql/data
       - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
       interval: 5s
       timeout: 3s
-      retries: 10
-
-  postgres-1-replica:
-    image: bitnami/postgresql:16
-    depends_on:
-      postgres-1:
-        condition: service_healthy
-    environment:
-      POSTGRESQL_REPLICATION_MODE: slave
-      POSTGRESQL_REPLICATION_USER: repl
-      POSTGRESQL_REPLICATION_PASSWORD: repl
-      POSTGRESQL_MASTER_HOST: postgres-1
-      POSTGRESQL_MASTER_PORT_NUMBER: 5432
-      POSTGRESQL_USERNAME: app
-      POSTGRESQL_PASSWORD: app
-      POSTGRESQL_DATABASE: urlshortener
-    ports:
-      - "5435:5432"
-    volumes:
-      - pgdata1replica:/bitnami/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d urlshortener"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -106,21 +52,15 @@ services:
     depends_on:
       postgres-0:
         condition: service_healthy
-      postgres-0-replica:
-        condition: service_healthy
       postgres-1:
-        condition: service_healthy
-      postgres-1-replica:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      SHARDING_SHARDS_0_WRITE_URL: jdbc:postgresql://postgres-0:5432/urlshortener
-      SHARDING_SHARDS_0_READ_URL: jdbc:postgresql://postgres-0-replica:5432/urlshortener
+      SHARDING_SHARDS_0_URL: jdbc:postgresql://postgres-0:5432/urlshortener
       SHARDING_SHARDS_0_USERNAME: app
       SHARDING_SHARDS_0_PASSWORD: app
-      SHARDING_SHARDS_1_WRITE_URL: jdbc:postgresql://postgres-1:5432/urlshortener
-      SHARDING_SHARDS_1_READ_URL: jdbc:postgresql://postgres-1-replica:5432/urlshortener
+      SHARDING_SHARDS_1_URL: jdbc:postgresql://postgres-1:5432/urlshortener
       SHARDING_SHARDS_1_USERNAME: app
       SHARDING_SHARDS_1_PASSWORD: app
       SPRING_DATA_REDIS_HOST: redis
@@ -147,6 +87,4 @@ services:
 
 volumes:
   pgdata0:
-  pgdata0replica:
   pgdata1:
-  pgdata1replica:
