@@ -1,6 +1,6 @@
 services:
   postgres-0:
-    image: bitnami/postgresql:16
+    image: soldevelo/postgresql:16
     environment:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: repl
@@ -20,7 +20,7 @@ services:
       retries: 10
 
   postgres-0-replica:
-    image: bitnami/postgresql:16
+    image: soldevelo/postgresql:16
     depends_on:
       postgres-0:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       retries: 10
 
   postgres-1:
-    image: bitnami/postgresql:16
+    image: soldevelo/postgresql:16
     environment:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: repl
@@ -64,7 +64,7 @@ services:
       retries: 10
 
   postgres-1-replica:
-    image: bitnami/postgresql:16
+    image: soldevelo/postgresql:16
     depends_on:
       postgres-1:
         condition: service_healthy
